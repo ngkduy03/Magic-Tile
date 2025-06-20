@@ -1,0 +1,5 @@
+{
+  "packageName": "MagicTile.API",
+  "packageVersion": "1.0.0",
+  "apiModelsPath": "MagicTile/Api/Models/"
+}

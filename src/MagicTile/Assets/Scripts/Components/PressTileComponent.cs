@@ -15,41 +15,48 @@ public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownH
     private RectTransform pressedRectTransform;
 
     [SerializeField]
-    private RectTransform laneRectTransform;
-
-    [SerializeField]
-    private float speed = 5f;
-
-    [SerializeField]
     private Image image;
 
+    private float speed;
+    private RectTransform endLineRectTransform;
     private bool isPressed = false;
     private TileAbstractController controller;
+    private IScoreService scoreService;
     private PressTileController pressController;
-    private CancellationTokenSource cts = new();
+    private bool isGameOver;
+
+    public void Initialize(
+        IScoreService scoreService,
+        RectTransform endLineRectTransform,
+        float speed,
+        ref bool isGameOver)
+    {
+        this.scoreService = scoreService;
+        this.endLineRectTransform = endLineRectTransform;
+        this.speed = speed;
+        this.isGameOver = isGameOver;
+    }
 
     protected override TileAbstractController CreateControllerImpl()
     {
-        controller = new PressTileController(tileRectTransform, pressedRectTransform, laneRectTransform, image, speed);
+        controller = new PressTileController(tileRectTransform, pressedRectTransform, endLineRectTransform, image, scoreService, speed, ref isGameOver);
         return controller;
     }
 
     private void Awake()
     {
-        controller = CreateController();
         pressController = controller as PressTileController;
     }
 
     private void Update()
     {
-        controller.MoveTileDown();
         if (isPressed)
         {
             float progress = pressController.PressProgress();
             if (progress >= tileRectTransform.sizeDelta.y)
             {
                 isPressed = false;
-                controller.FadeTile(cts.Token).Forget();
+                pressController.FadeTile().Forget();
             }
         }
     }
@@ -57,18 +64,16 @@ public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownH
     public void OnPointerUp(PointerEventData eventData)
     {
         isPressed = false;
-        controller.FadeTile(cts.Token).Forget();
+        pressController.FadeTile().Forget();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
         isPressed = true;
+        pressController.OnTileScored();
     }
 
     private void OnDestroy()
     {
-        cts?.Cancel();
-        cts?.Dispose();
-        cts = null;
     }
 }

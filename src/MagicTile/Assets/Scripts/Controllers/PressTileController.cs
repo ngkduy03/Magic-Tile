@@ -8,42 +8,51 @@ using UnityEngine.UI;
 
 public class PressTileController : TileAbstractController
 {
-    Material materialInstance;
     private readonly RectTransform pressedRectTransform;
     private Image pressedImage;
+    private float pressHeight;
+    private CancellationTokenSource fadeCTS = new();
 
     public PressTileController(
         RectTransform tileRectTransform,
         RectTransform pressedRectTransform,
         RectTransform laneRectTransform,
         Image image,
-        float speed)
+        IScoreService scoreService,
+        float speed,
+        ref bool isGameOver)
     {
         this.tileRectTransform = tileRectTransform;
         this.pressedRectTransform = pressedRectTransform;
         this.laneRectTransform = laneRectTransform;
         this.image = image;
+        this.scoreService = scoreService;
         this.speed = speed;
+        this.isGameOver = isGameOver;
         pressedImage = pressedRectTransform.GetComponent<Image>();
     }
 
     public float PressProgress()
     {
         // increase the height of the pressedRectTransform, clamping it to the height of the tileRectTransform
-        float newHeight = Mathf.Clamp(pressedRectTransform.sizeDelta.y + speed * 2 * Time.deltaTime, 0, tileRectTransform.sizeDelta.y);
-        pressedRectTransform.sizeDelta = new Vector2(pressedRectTransform.sizeDelta.x, newHeight);
-        return newHeight;
+        pressHeight = Mathf.Clamp(pressedRectTransform.sizeDelta.y + speed * 2 * Time.deltaTime, 0, tileRectTransform.sizeDelta.y);
+        pressedRectTransform.sizeDelta = new Vector2(pressedRectTransform.sizeDelta.x, pressHeight);
+        return pressHeight;
     }
 
     public override void DestroyTile()
     {
     }
 
-    public override async UniTask FadeTile(CancellationToken cancellationToken)
+    public override async UniTask FadeTile()
     {
-        if (image != null && !IsPressed)
+        if (image != null && !isPressed)
         {
-            IsPressed = true;
+            isPressed = true;
+            if (pressHeight >= tileRectTransform.sizeDelta.y)
+            {
+                scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
+            }
             // Create sequence for animations
             Sequence sequence = DOTween.Sequence();
 
@@ -58,7 +67,9 @@ public class PressTileController : TileAbstractController
             sequence.Join(image.DOFade(0f, 0.5f));
             sequence.Join(pressedImage.DOFade(0f, 0.5f));
 
-            await sequence.Play().WithCancellation(cancellationToken);
+            MoveCTS?.Cancel();
+            MoveCTS?.Dispose();
+            await sequence.Play().WithCancellation(fadeCTS.Token);
             Object.Destroy(tileRectTransform.gameObject);
         }
     }

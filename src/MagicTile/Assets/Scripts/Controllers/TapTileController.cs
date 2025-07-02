@@ -8,22 +8,28 @@ using UnityEngine.UI;
 
 public class TapTileController : TileAbstractController
 {
+    private CancellationTokenSource fadeCTS = new();
     public TapTileController(
         RectTransform tileRectTransform,
-        RectTransform laneRectTransform,
+        RectTransform endLineRectTransform,
         Image image,
-        float speed)
+        IScoreService scoreService,
+        float speed,
+        ref bool isGameOver)
     {
         this.tileRectTransform = tileRectTransform;
-        this.laneRectTransform = laneRectTransform;
+        this.laneRectTransform = endLineRectTransform;
         this.image = image;
+        this.scoreService = scoreService;
         this.speed = speed;
+        this.isGameOver = isGameOver;
     }
-    public override async UniTask FadeTile(CancellationToken cancellationToken)
+
+    public override async UniTask FadeTile()
     {
-        if (image != null && !IsPressed)
+        if (image != null && !isPressed)
         {
-            IsPressed = true;
+            isPressed = true;
             // Create sequence for animations
             Sequence sequence = DOTween.Sequence();
 
@@ -35,7 +41,9 @@ public class TapTileController : TileAbstractController
             sequence.Append(tileRectTransform.DOScale(0f, 0.7f));
             sequence.Join(image.DOFade(0f, 0.5f));
 
-            await sequence.Play().WithCancellation(cancellationToken);
+            MoveCTS?.Cancel();
+            MoveCTS?.Dispose();
+            await sequence.Play().WithCancellation(fadeCTS.Token);
             Object.Destroy(tileRectTransform.gameObject);
         }
     }

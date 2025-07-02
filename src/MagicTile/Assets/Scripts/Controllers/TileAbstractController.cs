@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -12,28 +13,69 @@ public abstract class TileAbstractController : ControllerBase
     protected RectTransform laneRectTransform;
     protected Image image;
     protected float speed;
-    protected bool IsPressed = false;
+    protected bool isGameOver = false;
+    protected bool isPressed = false;
+    private const float perfectGradeEpsilon = 50f;
+    protected IScoreService scoreService;
+    public CancellationTokenSource MoveCTS = new();
 
     public abstract void DestroyTile();
 
-    public void MoveTileDown()
+    public abstract UniTask FadeTile();
+
+    public virtual void OnTileScored()
     {
-        if (!HasReachedParentYPosition())
+        if (PerfectScoreCheck())
         {
-            tileRectTransform.anchoredPosition += Vector2.down * speed * Time.deltaTime;
+            scoreService.ScorePoint((int)ScoreGradeEnum.Perfect);
         }
+        else if (HasTileSizeReachedLanePivot())
+        {
+            scoreService.ScorePoint((int)ScoreGradeEnum.Great);
+        }
+        else
+        {
+            scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
+        }
+
+        Debug.Log($"Total Score: {scoreService.TotalPoint}");
     }
 
-    public abstract UniTask FadeTile(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Checks if this tile's RectTransform has reached the Y position of its parent RectTransform
-    /// </summary>
-    /// <returns>True if the tile has reached the parent's Y position</returns>
-    private bool HasReachedParentYPosition()
+    public virtual async UniTask MoveTileDown()
     {
-        float childY = tileRectTransform.anchoredPosition.y;
-        float parentY = laneRectTransform.anchoredPosition.y;
-        return childY <= parentY;
+        var tileYPivot = tileRectTransform.anchoredPosition.y;
+        var laneYPivot = laneRectTransform.anchoredPosition.y;
+        float distance = Mathf.Abs(tileYPivot - laneYPivot);
+        float duration = distance / speed;
+        await tileRectTransform.DOAnchorPosY(laneYPivot, duration)
+            .SetEase(Ease.Linear)
+            .OnComplete(() => isGameOver = true)
+            .WithCancellation(MoveCTS.Token);
+    }
+
+    private bool HasTilePivotReachedLanePivot()
+    {
+        var tileYPivot = tileRectTransform.anchoredPosition.y;
+        var laneYPivot = laneRectTransform.anchoredPosition.y;
+        return FloatEquals(tileYPivot, laneYPivot, 1);
+    }
+
+    private bool HasTileSizeReachedLanePivot()
+    {
+        var tileBottom = tileRectTransform.anchoredPosition.y - (tileRectTransform.sizeDelta.y * tileRectTransform.pivot.y);
+        var lanePivotY = laneRectTransform.anchoredPosition.y;
+        return tileBottom <= lanePivotY - perfectGradeEpsilon;
+    }
+
+    private bool PerfectScoreCheck()
+    {
+        var tileBottom = tileRectTransform.anchoredPosition.y - (tileRectTransform.sizeDelta.y * tileRectTransform.pivot.y);
+        var lanePivotY = laneRectTransform.anchoredPosition.y;
+        return FloatEquals(tileBottom, lanePivotY, perfectGradeEpsilon);
+    }
+
+    private bool FloatEquals(float value, float other, float epsilon)
+    {
+        return Mathf.Abs(value - other) <= epsilon;
     }
 }

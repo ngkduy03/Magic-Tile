@@ -11,7 +11,6 @@ public class PressTileController : TileAbstractController
     private readonly RectTransform pressedRectTransform;
     private Image pressedImage;
     private float pressHeight;
-    private CancellationTokenSource fadeCTS = new();
 
     public PressTileController(
         RectTransform tileRectTransform,
@@ -19,8 +18,7 @@ public class PressTileController : TileAbstractController
         RectTransform laneRectTransform,
         Image image,
         IScoreService scoreService,
-        float speed,
-        ref bool isGameOver)
+        float speed) : base()
     {
         this.tileRectTransform = tileRectTransform;
         this.pressedRectTransform = pressedRectTransform;
@@ -28,7 +26,6 @@ public class PressTileController : TileAbstractController
         this.image = image;
         this.scoreService = scoreService;
         this.speed = speed;
-        this.isGameOver = isGameOver;
         pressedImage = pressedRectTransform.GetComponent<Image>();
     }
 
@@ -49,26 +46,26 @@ public class PressTileController : TileAbstractController
         if (image != null && !isPressed)
         {
             isPressed = true;
+            moveCTS.Cancel();
+            moveCTS.Dispose();
+
             if (pressHeight >= tileRectTransform.sizeDelta.y)
             {
                 scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
             }
-            // Create sequence for animations
+
             Sequence sequence = DOTween.Sequence();
 
-            // First phase: scale up to 1.3 and change color to white
             pressedImage.material = null;
-            sequence.Append(tileRectTransform.DOScale(Vector3.one * 1.15f, 0.2f));
-            sequence.Join(image.DOColor(Color.white, 0.2f));
-            sequence.Join(pressedImage.DOColor(Color.white, 0.2f));
+            sequence.Append(tileRectTransform.DOScale(Vector3.one * ScaleUpSize, FadeInDuration));
+            sequence.Join(image.DOColor(Color.white, FadeInDuration));
+            sequence.Join(pressedImage.DOColor(Color.white, FadeInDuration));
 
             // Second phase: scale down to 0 and fade out
-            sequence.Append(tileRectTransform.DOScale(0f, 0.5f));
-            sequence.Join(image.DOFade(0f, 0.5f));
-            sequence.Join(pressedImage.DOFade(0f, 0.5f));
+            sequence.Append(tileRectTransform.DOScale(0f, FadeOutDuration));
+            sequence.Join(image.DOFade(0f, FadeOutDuration));
+            sequence.Join(pressedImage.DOFade(0f, FadeOutDuration));
 
-            MoveCTS?.Cancel();
-            MoveCTS?.Dispose();
             await sequence.Play().WithCancellation(fadeCTS.Token);
             Object.Destroy(tileRectTransform.gameObject);
         }

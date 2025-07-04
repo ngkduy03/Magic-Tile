@@ -23,23 +23,20 @@ public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownH
     private TileAbstractController controller;
     private IScoreService scoreService;
     private PressTileController pressController;
-    private bool isGameOver;
 
     public void Initialize(
         IScoreService scoreService,
         RectTransform endLineRectTransform,
-        float speed,
-        ref bool isGameOver)
+        float speed)
     {
         this.scoreService = scoreService;
         this.endLineRectTransform = endLineRectTransform;
         this.speed = speed;
-        this.isGameOver = isGameOver;
     }
 
     protected override TileAbstractController CreateControllerImpl()
     {
-        controller = new PressTileController(tileRectTransform, pressedRectTransform, endLineRectTransform, image, scoreService, speed, ref isGameOver);
+        controller = new PressTileController(tileRectTransform, pressedRectTransform, endLineRectTransform, image, scoreService, speed);
         return controller;
     }
 

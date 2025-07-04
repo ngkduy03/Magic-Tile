@@ -9,11 +9,10 @@ using UnityEngine.UI;
 public class StartTileController : TileAbstractController
 {
     private List<TileAbstractController> tileControllers;
-    private CancellationTokenSource fadeCTS = new();
     public StartTileController(
         RectTransform tileRectTransform,
         Image image,
-        List<TileAbstractController> tileControllers)
+        List<TileAbstractController> tileControllers) : base()
     {
         this.tileRectTransform = tileRectTransform;
         this.image = image;
@@ -40,15 +39,13 @@ public class StartTileController : TileAbstractController
             Sequence sequence = DOTween.Sequence();
 
             // First phase: scale up to 1.3 and change color to white
-            sequence.Append(tileRectTransform.DOScale(Vector3.one * 1.15f, 0.2f));
-            sequence.Join(image.DOColor(Color.white, 0.2f));
+            sequence.Append(tileRectTransform.DOScale(Vector3.one * ScaleUpSize, FadeInDuration));
+            sequence.Join(image.DOColor(Color.white, FadeInDuration));
 
             // Second phase: scale down to 0 and fade out
-            sequence.Append(tileRectTransform.DOScale(0f, 0.7f));
-            sequence.Join(image.DOFade(0f, 0.5f));
+            sequence.Append(tileRectTransform.DOScale(0f, FadeOutDuration));
+            sequence.Join(image.DOFade(0f, FadeOutDuration));
 
-            MoveCTS?.Cancel();
-            MoveCTS?.Dispose();
             await sequence.Play().WithCancellation(fadeCTS.Token);
             Object.Destroy(tileRectTransform.gameObject);
         }

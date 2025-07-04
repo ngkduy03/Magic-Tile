@@ -18,8 +18,6 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
 
     [SerializeField]
     private float speed;
-
-    private bool isGameOver = false;
     private List<TileAbstractController> tileControllers = new();
     private ILoadSceneService loadSceneService;
     private IScoreService scoreService;
@@ -40,13 +38,13 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
                 {
                     if (tileComponent is TapTileComponent tapTileComponent)
                     {
-                        tapTileComponent.Initialize(scoreService, lane as RectTransform, speed, ref isGameOver);
+                        tapTileComponent.Initialize(scoreService, lane as RectTransform, speed);
                         var tileController = tapTileComponent.CreateController();
                         tileControllers.Add(tileController);
                     }
                     else if (tileComponent is PressTileComponent pressTileComponent)
                     {
-                        pressTileComponent.Initialize(scoreService, lane as RectTransform, speed, ref isGameOver);
+                        pressTileComponent.Initialize(scoreService, lane as RectTransform, speed);
                         var tileController = pressTileComponent.CreateController();
                         tileControllers.Add(tileController);
                     }
@@ -60,15 +58,4 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
         tileControllers.Clear();
     }
 
-    private void Update()
-    {
-        if (isGameOver)
-        {
-            foreach (var tileController in tileControllers)
-            {
-                tileController.MoveCTS?.Cancel();
-                tileController.MoveCTS?.Dispose();
-            }
-        }
-    }
 }

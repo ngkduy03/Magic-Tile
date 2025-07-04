@@ -13,11 +13,21 @@ public abstract class TileAbstractController : ControllerBase
     protected RectTransform laneRectTransform;
     protected Image image;
     protected float speed;
-    protected bool isGameOver = false;
     protected bool isPressed = false;
     private const float perfectGradeEpsilon = 50f;
     protected IScoreService scoreService;
-    public CancellationTokenSource MoveCTS = new();
+    protected CancellationTokenSource fadeCTS = new();
+    protected CancellationTokenSource moveCTS = new();
+    protected static CancellationTokenSource MoveGlobalCTS = new();
+    protected const float FadeInDuration = 0.2f;
+    protected const float ScaleUpSize = 1.15f;
+    protected const float FadeOutDuration = 0.4f;
+
+    protected TileAbstractController()
+    {
+        fadeCTS = new();
+        MoveGlobalCTS = CancellationTokenSource.CreateLinkedTokenSource(fadeCTS.Token);
+    }
 
     public abstract void DestroyTile();
 
@@ -47,10 +57,16 @@ public abstract class TileAbstractController : ControllerBase
         var laneYPivot = laneRectTransform.anchoredPosition.y;
         float distance = Mathf.Abs(tileYPivot - laneYPivot);
         float duration = distance / speed;
+
+        using var linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(MoveGlobalCTS.Token, moveCTS.Token);
         await tileRectTransform.DOAnchorPosY(laneYPivot, duration)
             .SetEase(Ease.Linear)
-            .OnComplete(() => isGameOver = true)
-            .WithCancellation(MoveCTS.Token);
+            .OnComplete(() =>
+            {
+                MoveGlobalCTS?.Cancel();
+                MoveGlobalCTS?.Dispose();
+            })
+            .WithCancellation(linkedCTS.Token);
     }
 
     private bool HasTilePivotReachedLanePivot()

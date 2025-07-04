@@ -15,7 +15,6 @@ public class TapTileComponent : TileAbstract, IPointerDownHandler
     private Image image;
 
     private float speed;
-    private bool isGameOver;
     private RectTransform laneRectTransform;
     private IScoreService scoreService;
     private TileAbstractController controller;
@@ -24,18 +23,16 @@ public class TapTileComponent : TileAbstract, IPointerDownHandler
     public void Initialize(
         IScoreService scoreService,
         RectTransform laneRectTransform,
-        float speed,
-        ref bool isGameOver)
+        float speed)
     {
         this.scoreService = scoreService;
         this.laneRectTransform = laneRectTransform;
         this.speed = speed;
-        this.isGameOver = isGameOver;
     }
 
     protected override TileAbstractController CreateControllerImpl()
     {
-        controller = new TapTileController(tileRectTransform, laneRectTransform, image, scoreService, speed, ref isGameOver);
+        controller = new TapTileController(tileRectTransform, laneRectTransform, image, scoreService, speed);
         return controller;
     }
 

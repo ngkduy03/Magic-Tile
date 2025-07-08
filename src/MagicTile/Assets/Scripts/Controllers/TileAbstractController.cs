@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,8 +15,9 @@ public abstract class TileAbstractController : ControllerBase
     protected Image image;
     protected float speed;
     protected bool isPressed = false;
-    private const float perfectGradeEpsilon = 50f;
+    private const float perfectGradeEpsilon = 70f;
     protected IScoreService scoreService;
+    protected IEventBusService eventBusService;
     protected CancellationTokenSource fadeCTS = new();
     protected CancellationTokenSource moveCTS = new();
     protected static CancellationTokenSource MoveGlobalCTS = new();
@@ -35,20 +37,13 @@ public abstract class TileAbstractController : ControllerBase
 
     public virtual void OnTileScored()
     {
-        if (PerfectScoreCheck())
-        {
-            scoreService.ScorePoint((int)ScoreGradeEnum.Perfect);
-        }
-        else if (HasTileSizeReachedLanePivot())
-        {
-            scoreService.ScorePoint((int)ScoreGradeEnum.Great);
-        }
-        else
-        {
-            scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
-        }
+        ScoreGradeEnum grade = PerfectScoreCheck() ? ScoreGradeEnum.Perfect :
+                             HasTileSizeReachedLanePivot() ? ScoreGradeEnum.Great :
+                             ScoreGradeEnum.Cool;
 
-        Debug.Log($"Total Score: {scoreService.TotalPoint}");
+        scoreService.ScorePoint((int)grade);
+        eventBusService.TriggerEvent(new ScorePointParam(scoreService.TotalPoint.ToString(), grade.ToString()));
+        Debug.Log($"Score Grade: {grade}");
     }
 
     public virtual async UniTask MoveTileDown()
@@ -65,15 +60,9 @@ public abstract class TileAbstractController : ControllerBase
             {
                 MoveGlobalCTS?.Cancel();
                 MoveGlobalCTS?.Dispose();
+                eventBusService.TriggerEvent(new GameOverParam());
             })
             .WithCancellation(linkedCTS.Token);
-    }
-
-    private bool HasTilePivotReachedLanePivot()
-    {
-        var tileYPivot = tileRectTransform.anchoredPosition.y;
-        var laneYPivot = laneRectTransform.anchoredPosition.y;
-        return FloatEquals(tileYPivot, laneYPivot, 1);
     }
 
     private bool HasTileSizeReachedLanePivot()
@@ -93,5 +82,24 @@ public abstract class TileAbstractController : ControllerBase
     private bool FloatEquals(float value, float other, float epsilon)
     {
         return Mathf.Abs(value - other) <= epsilon;
+    }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            fadeCTS?.Cancel();
+            fadeCTS?.Dispose();
+            fadeCTS = null;
+
+            moveCTS?.Cancel();
+            moveCTS?.Dispose();
+            moveCTS = null;
+
+            MoveGlobalCTS?.Cancel();
+            MoveGlobalCTS?.Dispose();
+            MoveGlobalCTS = null;
+
+            speed = 0f;
+        }
     }
 }

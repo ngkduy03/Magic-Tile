@@ -18,15 +18,25 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
 
     [SerializeField]
     private float speed;
+
+    [SerializeField]
+    private GameCanvasComponent gameCanvasComponent;
+
     private List<TileAbstractController> tileControllers = new();
     private ILoadSceneService loadSceneService;
     private IScoreService scoreService;
+    private IEventBusService eventBusService;
 
     protected override void Initialize(IServiceContainer serviceResolver)
     {
         loadSceneService = serviceResolver.Resolve<ILoadSceneService>();
         scoreService = serviceResolver.Resolve<IScoreService>();
-        startTileComponent.Initialized(tileControllers);
+        eventBusService = serviceResolver.Resolve<IEventBusService>();
+
+        gameCanvasComponent.Initialize(eventBusService);
+        var gameCanvasController = gameCanvasComponent.CreateController();
+
+        startTileComponent.Initialized(tileControllers, eventBusService);
         var startTileController = startTileComponent.CreateController();
 
         // Initialize all the tiles controllers in the lanes.
@@ -36,15 +46,15 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
             {
                 if (lane.GetChild(i).TryGetComponent(out TileAbstract tileComponent))
                 {
+                    tileComponent.Initialize(scoreService, eventBusService, lane as RectTransform, speed);
+
                     if (tileComponent is TapTileComponent tapTileComponent)
                     {
-                        tapTileComponent.Initialize(scoreService, lane as RectTransform, speed);
                         var tileController = tapTileComponent.CreateController();
                         tileControllers.Add(tileController);
                     }
                     else if (tileComponent is PressTileComponent pressTileComponent)
                     {
-                        pressTileComponent.Initialize(scoreService, lane as RectTransform, speed);
                         var tileController = pressTileComponent.CreateController();
                         tileControllers.Add(tileController);
                     }

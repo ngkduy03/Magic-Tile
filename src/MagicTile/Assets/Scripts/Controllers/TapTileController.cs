@@ -13,12 +13,14 @@ public class TapTileController : TileAbstractController
         RectTransform endLineRectTransform,
         Image image,
         IScoreService scoreService,
+        IEventBusService eventBusService,
         float speed) : base()
     {
         this.tileRectTransform = tileRectTransform;
         this.laneRectTransform = endLineRectTransform;
         this.image = image;
         this.scoreService = scoreService;
+        this.eventBusService = eventBusService;
         this.speed = speed;
     }
 

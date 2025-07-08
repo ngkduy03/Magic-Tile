@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +19,7 @@ public class PressTileController : TileAbstractController
         RectTransform laneRectTransform,
         Image image,
         IScoreService scoreService,
+        IEventBusService eventBusService,
         float speed) : base()
     {
         this.tileRectTransform = tileRectTransform;
@@ -25,6 +27,7 @@ public class PressTileController : TileAbstractController
         this.laneRectTransform = laneRectTransform;
         this.image = image;
         this.scoreService = scoreService;
+        this.eventBusService = eventBusService;
         this.speed = speed;
         pressedImage = pressedRectTransform.GetComponent<Image>();
     }
@@ -52,9 +55,10 @@ public class PressTileController : TileAbstractController
             if (pressHeight >= tileRectTransform.sizeDelta.y)
             {
                 scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
+                eventBusService.TriggerEvent(new ScorePointParam(scoreService.TotalPoint.ToString(), ScoreGradeEnum.None.ToString()));
             }
 
-            Sequence sequence = DOTween.Sequence();
+            var sequence = DOTween.Sequence();
 
             pressedImage.material = null;
             sequence.Append(tileRectTransform.DOScale(Vector3.one * ScaleUpSize, FadeInDuration));

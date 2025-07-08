@@ -12,11 +12,13 @@ public class StartTileController : TileAbstractController
     public StartTileController(
         RectTransform tileRectTransform,
         Image image,
-        List<TileAbstractController> tileControllers) : base()
+        List<TileAbstractController> tileControllers,
+        IEventBusService eventBusService) : base()
     {
         this.tileRectTransform = tileRectTransform;
         this.image = image;
         this.tileControllers = tileControllers;
+        this.eventBusService = eventBusService;
     }
 
     // Start is called before the first frame update
@@ -53,6 +55,7 @@ public class StartTileController : TileAbstractController
 
     public void ActivateTiles()
     {
+        eventBusService.TriggerEvent(new StartGameParam());
         foreach (var tileController in tileControllers)
         {
             tileController.MoveTileDown().Forget();

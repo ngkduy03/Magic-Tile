@@ -29,9 +29,9 @@ public class StartTileComponent : TileAbstract, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!isPressed)
+        if (!startTileController.IsPressed)
         {
-            isPressed = true;
+            startTileController.IsPressed = true;
             startTileController.FadeTile().Forget();
             startTileController.ActivateTiles();
         }

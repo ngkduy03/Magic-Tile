@@ -1,10 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +12,7 @@ public abstract class TileAbstractController : ControllerBase
     protected RectTransform laneRectTransform;
     protected Image image;
     protected float speed;
-    protected bool isPressed = false;
+    public bool IsPressed { get; set; }
     private const float perfectGradeEpsilon = 70f;
     protected IScoreService scoreService;
     protected IEventBusService eventBusService;
@@ -41,8 +39,11 @@ public abstract class TileAbstractController : ControllerBase
                              HasTileSizeReachedLanePivot() ? ScoreGradeEnum.Great :
                              ScoreGradeEnum.Cool;
 
-        scoreService.ScorePoint((int)grade);
-        eventBusService.TriggerEvent(new ScorePointParam(scoreService.TotalPoint.ToString(), grade.ToString()));
+        scoreService.ScorePoint(grade);
+        var pointTxt = scoreService.TotalPoint.ToString();
+        var gradeTxt = grade.ToString();
+        var comboTxt = scoreService.ComboPoint.ToString();
+        eventBusService.TriggerEvent(new ScorePointParam(pointTxt, gradeTxt, comboTxt));
         Debug.Log($"Score Grade: {grade}");
     }
 
@@ -56,11 +57,18 @@ public abstract class TileAbstractController : ControllerBase
         using var linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(MoveGlobalCTS.Token, moveCTS.Token);
         await tileRectTransform.DOAnchorPosY(laneYPivot, duration)
             .SetEase(Ease.Linear)
-            .OnComplete(() =>
+            .OnComplete(async () =>
             {
-                MoveGlobalCTS?.Cancel();
-                MoveGlobalCTS?.Dispose();
-                eventBusService.TriggerEvent(new GameOverParam());
+                if (IsPressed == true)
+                {
+                    await FadeTile();
+                }
+                else
+                {
+                    MoveGlobalCTS?.Cancel();
+                    MoveGlobalCTS?.Dispose();
+                    eventBusService.TriggerEvent(new GameOverParam());
+                }
             })
             .WithCancellation(linkedCTS.Token);
     }
@@ -83,6 +91,7 @@ public abstract class TileAbstractController : ControllerBase
     {
         return Mathf.Abs(value - other) <= epsilon;
     }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

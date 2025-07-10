@@ -26,12 +26,22 @@ public class GameCanvasController : ControllerBase
     private readonly Slider progressSlider;
     private readonly TMP_Text scoreText;
     private readonly TMP_Text gradeText;
-    private AudioSource bgAudioSource;
+    private readonly TMP_Text comboText;
+    private readonly AudioSource bgAudioSource;
+
+    // UI for game over.
+    private readonly Canvas overCanvas;
+    private readonly TMP_Text overScoreText;
+    private readonly Button retryButton;
+    private readonly Button menuButton;
+
     private CancellationTokenSource scoreCTS = new();
     private CancellationTokenSource gradeCTS = new();
     private CancellationTokenSource progressCTS = new();
     private Sequence fadeLoopSequence;
     private IEventBusService eventBusService;
+    private IScoreService scoreService;
+    private ILoadSceneService loadSceneService;
 
     public GameCanvasController(
         CanvasScaler canvasScaler,
@@ -40,8 +50,15 @@ public class GameCanvasController : ControllerBase
         Slider progressSlider,
         TMP_Text scoreText,
         TMP_Text gradeText,
+        TMP_Text comboText,
         AudioSource bgAudioSource,
-        IEventBusService eventBusService)
+        Canvas overCanvas,
+        TMP_Text overScoreText,
+        Button retryButton,
+        Button menuButton,
+        IEventBusService eventBusService,
+        IScoreService scoreService,
+        ILoadSceneService loadSceneService)
     {
         this.canvasScaler = canvasScaler;
         this.backgroundImage = backgroundImage;
@@ -49,16 +66,41 @@ public class GameCanvasController : ControllerBase
         this.progressSlider = progressSlider;
         this.scoreText = scoreText;
         this.gradeText = gradeText;
+        this.comboText = comboText;
         this.bgAudioSource = bgAudioSource;
+        this.overCanvas = overCanvas;
+        this.overScoreText = overScoreText;
+        this.retryButton = retryButton;
+        this.menuButton = menuButton;
         this.eventBusService = eventBusService;
+        this.scoreService = scoreService;
+        this.loadSceneService = loadSceneService;
 
         backgroundColor = backgroundImage.color;
         deadlineColor = deadLineImage.color;
         scoreText.text = "0";
         gradeText.text = string.Empty;
+        comboText.text = string.Empty;
+
+        Subscribed();
+    }
+
+    private void Subscribed()
+    {
         eventBusService.RegisterListener<ScorePointParam>(OnPointScore);
         eventBusService.RegisterListener<StartGameParam>(OnGameStart);
         eventBusService.RegisterListener<GameOverParam>(OnGameOver);
+        retryButton.onClick.AddListener(OnReStartButtonClicked);
+        menuButton.onClick.AddListener(OnLoadToMenu);
+    }
+
+    private void Unsubscribed()
+    {
+        eventBusService.UnregisterListener<ScorePointParam>(OnPointScore);
+        eventBusService.UnregisterListener<StartGameParam>(OnGameStart);
+        eventBusService.UnregisterListener<GameOverParam>(OnGameOver);
+        retryButton.onClick.RemoveListener(OnReStartButtonClicked);
+        menuButton.onClick.RemoveListener(OnLoadToMenu);
     }
 
     /// <summary>
@@ -100,9 +142,10 @@ public class GameCanvasController : ControllerBase
     {
         scoreText.text = "0";
         gradeText.text = string.Empty;
+        comboText.text = string.Empty;
         scoreCTS?.Cancel();
         scoreCTS?.Dispose();
-        scoreCTS = new CancellationTokenSource();
+        scoreCTS = new();
         FadeLoopDecoration();
         PlayMusicAndSlider();
     }
@@ -129,6 +172,19 @@ public class GameCanvasController : ControllerBase
         fadeLoopSequence = null;
         backgroundImage.color = backgroundColor;
         deadLineImage.color = deadlineColor;
+
+        overCanvas.gameObject.SetActive(true);
+        overScoreText.text = scoreService.TotalPoint.ToString();
+    }
+
+    private void OnReStartButtonClicked()
+    {
+        loadSceneService.ReloadCurrentScene();
+    }
+
+    private void OnLoadToMenu()
+    {
+        loadSceneService.LoadSceneAsync("");
     }
 
     private async UniTask ScoreEffect(ScorePointParam param)
@@ -137,11 +193,14 @@ public class GameCanvasController : ControllerBase
         scoreCTS?.Dispose();
         scoreCTS = new();
         scoreText.text = param.ScoreText;
+
         var scoreSequence = DOTween.Sequence();
         var gradeSequence = DOTween.Sequence();
+
         // Add the score text animation
         scoreSequence.Append(scoreText.transform.DOScale(0.5f, 0f));
         scoreSequence.Append(scoreText.transform.DOScale(1f, 0.2f));
+
         await scoreSequence.Play().WithCancellation(scoreCTS.Token);
 
         if (param.GradeText != ScoreGradeEnum.None.ToString())
@@ -155,6 +214,20 @@ public class GameCanvasController : ControllerBase
             gradeSequence.Join(gradeText.transform.DOScale(0.5f, 0f));
             gradeSequence.Append(gradeText.transform.DOScale(1f, 0.2f));
             gradeSequence.Append(gradeText.DOFade(0.0f, 1f));
+
+            if (param.GradeText == ScoreGradeEnum.Perfect.ToString())
+            {
+                // Add the combo text animation
+                comboText.text = "x" + param.ComboText;
+                comboText.DOFade(1.0f, 0f);
+                comboText.transform.DOScale(0.5f, 0f);
+                gradeSequence.Join(comboText.transform.DOScale(1f, 0.2f));
+                gradeSequence.Join(comboText.DOFade(0.0f, 1f));
+            }
+            else
+            {
+                comboText.text = string.Empty;
+            }
             await gradeSequence.Play().WithCancellation(gradeCTS.Token);
         }
     }
@@ -165,9 +238,10 @@ public class GameCanvasController : ControllerBase
         progressCTS?.Dispose();
         progressCTS = new();
 
+        progressSlider.value = 0f;
+        scoreService.ResetPoint();
         bgAudioSource?.Play();
         var bgDuration = bgAudioSource?.clip.length;
-        progressSlider.value = 0f;
         progressSlider.DOValue(1f, bgDuration.Value)
             .SetEase(Ease.Linear)
             .WithCancellation(progressCTS.Token);
@@ -189,10 +263,7 @@ public class GameCanvasController : ControllerBase
             progressCTS?.Dispose();
             progressCTS = null;
 
-            eventBusService.UnregisterListener<ScorePointParam>(OnPointScore);
-            eventBusService.UnregisterListener<StartGameParam>(OnGameStart);
-            eventBusService.UnregisterListener<GameOverParam>(OnGameOver);
-
+            Unsubscribed();
         }
     }
 }

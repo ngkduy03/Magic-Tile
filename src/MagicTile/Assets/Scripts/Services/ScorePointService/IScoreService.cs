@@ -6,5 +6,9 @@ public interface IScoreService
 {
     int TotalPoint { get; }
 
-    int ScorePoint(int points);
+    int ComboPoint { get; }
+
+    int ScorePoint(ScoreGradeEnum grade);
+
+    int ResetPoint();
 }

@@ -33,7 +33,7 @@ public class GameLoopContext : BaseContext<ServiceInitializer>
         scoreService = serviceResolver.Resolve<IScoreService>();
         eventBusService = serviceResolver.Resolve<IEventBusService>();
 
-        gameCanvasComponent.Initialize(eventBusService);
+        gameCanvasComponent.Initialize(eventBusService,scoreService,loadSceneService);
         var gameCanvasController = gameCanvasComponent.CreateController();
 
         startTileComponent.Initialized(tileControllers, eventBusService);

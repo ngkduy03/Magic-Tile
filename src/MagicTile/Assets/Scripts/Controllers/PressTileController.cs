@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +8,7 @@ public class PressTileController : TileAbstractController
     private readonly RectTransform pressedRectTransform;
     private Image pressedImage;
     private float pressHeight;
+    private bool isFaded = false;
 
     public PressTileController(
         RectTransform tileRectTransform,
@@ -34,7 +31,7 @@ public class PressTileController : TileAbstractController
 
     public float PressProgress()
     {
-        // increase the height of the pressedRectTransform, clamping it to the height of the tileRectTransform
+        // Increase the height of the pressedRectTransform, clamping it to the height of the tileRectTransform
         pressHeight = Mathf.Clamp(pressedRectTransform.sizeDelta.y + speed * 2 * Time.deltaTime, 0, tileRectTransform.sizeDelta.y);
         pressedRectTransform.sizeDelta = new Vector2(pressedRectTransform.sizeDelta.x, pressHeight);
         return pressHeight;
@@ -46,16 +43,16 @@ public class PressTileController : TileAbstractController
 
     public override async UniTask FadeTile()
     {
-        if (image != null && !isPressed)
+        if (image != null && !isFaded)
         {
-            isPressed = true;
-            moveCTS.Cancel();
-            moveCTS.Dispose();
+            isFaded = true;
+            moveCTS?.Cancel();
+            moveCTS?.Dispose();
 
             if (pressHeight >= tileRectTransform.sizeDelta.y)
             {
-                scoreService.ScorePoint((int)ScoreGradeEnum.Cool);
-                eventBusService.TriggerEvent(new ScorePointParam(scoreService.TotalPoint.ToString(), ScoreGradeEnum.None.ToString()));
+                scoreService.ScorePoint(ScoreGradeEnum.EndPress);
+                eventBusService.TriggerEvent(new ScorePointParam(scoreService.TotalPoint.ToString(), ScoreGradeEnum.None.ToString(), string.Empty));
             }
 
             var sequence = DOTween.Sequence();

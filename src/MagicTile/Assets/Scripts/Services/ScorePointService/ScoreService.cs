@@ -4,13 +4,35 @@ using UnityEngine;
 
 public class ScoreService : IScoreService
 {
-    private int totalPoint;
+    private int totalPoint = 0;
     public int TotalPoint => totalPoint;
 
-    public int ScorePoint(int point)
+    private int comboPoint = 0;
+    public int ComboPoint => comboPoint;
+
+    public int ResetPoint()
     {
-        totalPoint += point;
-        Debug.Log($"Total Score: {totalPoint}");
-        return totalPoint;
+        comboPoint = 0;
+        return totalPoint = 0;
+    }
+
+    public int ScorePoint(ScoreGradeEnum grade)
+    {
+        totalPoint += (int)grade;
+
+        if (grade == ScoreGradeEnum.Perfect)
+        {
+            comboPoint++;
+            return totalPoint * comboPoint;
+        }
+        else if (grade == ScoreGradeEnum.EndPress)
+        {
+            return totalPoint;
+        }
+        else
+        {
+            comboPoint = 0;
+            return totalPoint;
+        }
     }
 }

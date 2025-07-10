@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -26,13 +25,12 @@ public class TapTileController : TileAbstractController
 
     public override async UniTask FadeTile()
     {
-        if (image != null && !isPressed)
+        if (image != null)
         {
-            isPressed = true;
             moveCTS.Cancel();
             moveCTS.Dispose();
 
-            Sequence sequence = DOTween.Sequence();
+            var sequence = DOTween.Sequence();
 
             sequence.Append(tileRectTransform.DOScale(Vector3.one * ScaleUpSize, FadeInDuration));
             sequence.Join(image.DOColor(Color.white, FadeInDuration));

@@ -4,7 +4,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownHandler
 {
@@ -26,7 +25,7 @@ public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownH
 
     private void Update()
     {
-        if (isPressed)
+        if (pressController.IsPressed)
         {
             float progress = pressController.PressProgress();
             if (progress >= tileRectTransform.sizeDelta.y)
@@ -43,14 +42,10 @@ public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownH
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!isPressed)
+        if (!pressController.IsPressed)
         {
-            isPressed = true;
+            pressController.IsPressed = true;
             pressController.OnTileScored();
         }
-    }
-
-    private void OnDestroy()
-    {
     }
 }

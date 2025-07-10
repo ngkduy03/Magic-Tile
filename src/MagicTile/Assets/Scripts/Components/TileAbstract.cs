@@ -11,7 +11,6 @@ public abstract class TileAbstract : SceneComponent<TileAbstractController>
     [SerializeField]
     protected Image image;
 
-    protected bool isPressed = false;
     protected float speed;
     protected RectTransform laneRectTransform;
     protected IScoreService scoreService;

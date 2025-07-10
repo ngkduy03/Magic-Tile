@@ -20,15 +20,11 @@ public class TapTileComponent : TileAbstract, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!isPressed)
+        if (!tapController.IsPressed)
         {
-            isPressed = true;
+            tapController.IsPressed = true;
             tapController.FadeTile().Forget();
             tapController.OnTileScored();
         }
-    }
-    
-    private void OnDestroy()
-    {
     }
 }

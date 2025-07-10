@@ -34,9 +34,8 @@ public class StartTileController : TileAbstractController
 
     public override async UniTask FadeTile()
     {
-        if (image != null && !isPressed)
+        if (image != null)
         {
-            isPressed = true;
             // Create sequence for animations
             Sequence sequence = DOTween.Sequence();
 

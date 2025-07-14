@@ -1,53 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
+/// <summary>
+/// Handles the tap tile interaction in the game.
+/// </summary>
 public class TapTileComponent : TileAbstract, IPointerDownHandler
 {
-    [SerializeField]
-    private RectTransform tileRectTransform;
-
-    [SerializeField]
-    private RectTransform laneRectTransform;
-
-    [SerializeField]
-    private float speed = 5f;
-
-    [SerializeField]
-    private Image image;
-
-    private TileAbstractController controller;
-    private CancellationTokenSource cts = new();
+    private TapTileController tapController;
 
     protected override TileAbstractController CreateControllerImpl()
     {
-        controller = new TapTileController(tileRectTransform, laneRectTransform, image, speed);
+        controller = new TapTileController(tileRectTransform, laneRectTransform, image, scoreService, eventBusService, speed);
         return controller;
     }
 
     private void Awake()
     {
-        controller = CreateController();
-    }
-
-    private void Update()
-    {
-        controller.MoveTileDown();
+        tapController = controller as TapTileController;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        controller.FadeTile(cts.Token).Forget();
-    }
-    
-    private void OnDestroy()
-    {
-        cts?.Cancel();
-        cts?.Dispose();
-        cts = null;
+        if (!tapController.IsPressed)
+        {
+            tapController.IsPressed = true;
+            tapController.FadeTile().Forget();
+            tapController.OnTileScored();
+        }
     }
 }

@@ -91,8 +91,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileRectTransform: {fileID: 3579578477302700057}
-  laneRectTransform: {fileID: 0}
-  speed: 500
   image: {fileID: 3579578477302700056}
 --- !u!114 &3579578477302700053
 MonoBehaviour:

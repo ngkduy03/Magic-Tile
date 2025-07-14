@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Parameter class for score point events in the game.
+/// </summary>
 public class ScorePointParam : IEventParameter
 {
     public readonly string ScoreText;

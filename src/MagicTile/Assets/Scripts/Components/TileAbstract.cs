@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Abstract class for tile components in the game.
+/// </summary>
 public abstract class TileAbstract : SceneComponent<TileAbstractController>
 {
     [SerializeField]

@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// Context for managing the game loop and tile interactions.
+/// </summary>
 [DefaultExecutionOrder(-1)]
 public class GameLoopContext : BaseContext<ServiceInitializer>
 {

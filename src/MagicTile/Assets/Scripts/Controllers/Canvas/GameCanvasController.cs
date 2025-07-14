@@ -42,6 +42,7 @@ public class GameCanvasController : ControllerBase
     private IEventBusService eventBusService;
     private IScoreService scoreService;
     private ILoadSceneService loadSceneService;
+    private const string BootScene = "BootScene";
 
     public GameCanvasController(
         CanvasScaler canvasScaler,
@@ -165,14 +166,20 @@ public class GameCanvasController : ControllerBase
         progressCTS = null;
 
         bgAudioSource?.Stop();
-
         gradeText.text = string.Empty;
+        progressSlider.value = 0f;
 
         fadeLoopSequence.Kill();
         fadeLoopSequence = null;
         backgroundImage.color = backgroundColor;
         deadLineImage.color = deadlineColor;
 
+        ActiveOverPanel().Forget();
+    }
+
+    private async UniTask ActiveOverPanel()
+    {
+        await UniTask.Delay(500);
         overCanvas.gameObject.SetActive(true);
         overScoreText.text = scoreService.TotalPoint.ToString();
     }
@@ -184,7 +191,7 @@ public class GameCanvasController : ControllerBase
 
     private void OnLoadToMenu()
     {
-        loadSceneService.LoadSceneAsync("");
+        loadSceneService.LoadSceneAsync(BootScene);
     }
 
     private async UniTask ScoreEffect(ScorePointParam param)

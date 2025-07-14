@@ -5,6 +5,9 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Handles the press tile interaction in the game.
+/// </summary>
 public class PressTileComponent : TileAbstract, IPointerUpHandler, IPointerDownHandler
 {
     [SerializeField]

@@ -3,6 +3,9 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Controller for handling the press tile interactions in the game.
+/// </summary>
 public class PressTileController : TileAbstractController
 {
     private readonly RectTransform pressedRectTransform;

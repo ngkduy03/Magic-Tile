@@ -5,6 +5,9 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Controller for handling the tap tile interactions in the game.
+/// </summary>
 public class TapTileController : TileAbstractController
 {
     public TapTileController(

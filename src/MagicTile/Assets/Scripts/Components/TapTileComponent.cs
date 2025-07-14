@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Handles the tap tile interaction in the game.
+/// </summary>
 public class TapTileComponent : TileAbstract, IPointerDownHandler
 {
     private TapTileController tapController;

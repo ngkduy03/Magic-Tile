@@ -6,6 +6,9 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Abstract controller class for handling tile interactions in the game.
+/// </summary>
 public abstract class TileAbstractController : ControllerBase
 {
     protected RectTransform tileRectTransform;

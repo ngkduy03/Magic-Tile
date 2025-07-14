@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Handles the start tile interaction in the game.
+/// </summary>
 public class StartTileComponent : TileAbstract, IPointerDownHandler
 {
     private StartTileController startTileController;

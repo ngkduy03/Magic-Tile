@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <inheritdoc/>
 public class ScoreService : IScoreService
 {
     private int totalPoint = 0;
@@ -18,21 +19,24 @@ public class ScoreService : IScoreService
 
     public int ScorePoint(ScoreGradeEnum grade)
     {
-        totalPoint += (int)grade;
+        var scorePoint = (int)grade;
 
         if (grade == ScoreGradeEnum.Perfect)
         {
             comboPoint++;
-            return totalPoint * comboPoint;
+            scorePoint *= comboPoint;
+            totalPoint += scorePoint;
         }
         else if (grade == ScoreGradeEnum.EndPress)
         {
-            return totalPoint;
+            totalPoint += 1;
         }
         else
         {
             comboPoint = 0;
-            return totalPoint;
+            totalPoint += scorePoint;
         }
+
+        return totalPoint;
     }
 }

@@ -6,6 +6,9 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Controller for handling the start tile interactions in the game.
+/// </summary>
 public class StartTileController : TileAbstractController
 {
     private List<TileAbstractController> tileControllers;

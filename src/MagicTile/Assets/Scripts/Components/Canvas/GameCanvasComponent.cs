@@ -73,6 +73,14 @@ public class GameCanvasComponent : SceneComponent<GameCanvasController>
         controller.SetReferenceResolution();
     }
 
+    private void Update()
+    {
+        if (progressSlider.value >= progressSlider.maxValue)
+        {
+            eventBusService.TriggerEvent(new GameOverParam());
+        }
+    }
+
     private void OnDestroy()
     {
         controller?.Dispose();

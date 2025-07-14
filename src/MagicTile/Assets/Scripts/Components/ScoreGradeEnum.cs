@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Enum representing the score grades in the game.
+/// </summary>
 public enum ScoreGradeEnum
 {
     None = 0,

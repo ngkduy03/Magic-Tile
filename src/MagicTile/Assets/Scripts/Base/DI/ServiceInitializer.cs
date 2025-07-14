@@ -7,5 +7,7 @@ public class ServiceInitializer : IServiceInitializer
     public void InitializeServices(ServiceContainer serviceContainer)
     {
         serviceContainer.Register<ILoadSceneService>(new LoadSceneService());
+        serviceContainer.Register<IScoreService>(new ScoreService());
+        serviceContainer.Register<IEventBusService>(new EventBusService());
     }
 }

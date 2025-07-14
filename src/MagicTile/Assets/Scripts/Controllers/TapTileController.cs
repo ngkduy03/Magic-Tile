@@ -1,41 +1,47 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Controller for handling the tap tile interactions in the game.
+/// </summary>
 public class TapTileController : TileAbstractController
 {
     public TapTileController(
         RectTransform tileRectTransform,
-        RectTransform laneRectTransform,
+        RectTransform endLineRectTransform,
         Image image,
-        float speed)
+        IScoreService scoreService,
+        IEventBusService eventBusService,
+        float speed) : base()
     {
         this.tileRectTransform = tileRectTransform;
-        this.laneRectTransform = laneRectTransform;
+        this.laneRectTransform = endLineRectTransform;
         this.image = image;
+        this.scoreService = scoreService;
+        this.eventBusService = eventBusService;
         this.speed = speed;
     }
-    public override async UniTask FadeTile(CancellationToken cancellationToken)
+
+    public override async UniTask FadeTile()
     {
-        if (image != null && !IsPressed)
+        if (image != null)
         {
-            IsPressed = true;
-            // Create sequence for animations
-            Sequence sequence = DOTween.Sequence();
+            moveCTS.Cancel();
+            moveCTS.Dispose();
 
-            // First phase: scale up to 1.3 and change color to white
-            sequence.Append(tileRectTransform.DOScale(Vector3.one * 1.15f, 0.2f));
-            sequence.Join(image.DOColor(Color.white, 0.2f));
+            var sequence = DOTween.Sequence();
 
-            // Second phase: scale down to 0 and fade out
-            sequence.Append(tileRectTransform.DOScale(0f, 0.7f));
-            sequence.Join(image.DOFade(0f, 0.5f));
+            sequence.Append(tileRectTransform.DOScale(Vector3.one * ScaleUpSize, FadeInDuration));
+            sequence.Join(image.DOColor(Color.white, FadeInDuration));
 
-            await sequence.Play().WithCancellation(cancellationToken);
+            sequence.Append(tileRectTransform.DOScale(0f, FadeOutDuration));
+            sequence.Join(image.DOFade(0f, FadeOutDuration));
+
+            await sequence.Play().WithCancellation(fadeCTS.Token);
             Object.Destroy(tileRectTransform.gameObject);
         }
     }

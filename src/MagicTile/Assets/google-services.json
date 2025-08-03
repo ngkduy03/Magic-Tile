@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "891563121773",
+    "project_id": "mtfb-b399d",
+    "storage_bucket": "mtfb-b399d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:891563121773:android:ee35677ba1a4c5e109f364",
+        "android_client_info": {
+          "package_name": "com.KhangDui.MagicTile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA22ffzDPimCGpTIpRji9cKKEtlFcOQefY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
